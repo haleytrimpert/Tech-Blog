@@ -1,10 +1,10 @@
 const router = require("express").Router();
-const { Dashboard, User } = require("../models");
+const { Post, User } = require("../models");
 const withAuth = require("../utils/auth");
 
 router.get("/", async (req, res) => {
   try {
-    const dashboardData = await Dashboard.findAll({
+    const postData = await Post.findAll({
       include: [
         {
           model: User,
@@ -14,13 +14,11 @@ router.get("/", async (req, res) => {
     });
 
     // Serialize data so the template can read it
-    const dashboard = dashboardData.map((dashboard) =>
-      dashboard.get({ plain: true })
-    );
+    const post = postData.map((post) => post.get({ plain: true }));
 
     // Pass serialized data and session flag into template
     res.render("homepage", {
-      dashboard,
+      post,
       logged_in: req.session.logged_in,
     });
   } catch (err) {
@@ -28,9 +26,9 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.get("/dashboard/:id", async (req, res) => {
+router.get("/post/:id", async (req, res) => {
   try {
-    const dashboardData = await Dashboard.findByPk(req.params.id, {
+    const postData = await Post.findByPk(req.params.id, {
       include: [
         {
           model: User,
@@ -39,10 +37,10 @@ router.get("/dashboard/:id", async (req, res) => {
       ],
     });
 
-    const dashboard = projectData.get({ plain: true });
+    const post = postData.get({ plain: true });
 
-    res.render("dashboard", {
-      ...dashboard,
+    res.render("post", {
+      ...post,
       logged_in: req.session.logged_in,
     });
   } catch (err) {
@@ -51,12 +49,12 @@ router.get("/dashboard/:id", async (req, res) => {
 });
 
 // Use withAuth middleware to prevent access to route
-router.get("/dashboard", withAuth, async (req, res) => {
+router.get("/post", withAuth, async (req, res) => {
   try {
     // Find the logged in user based on the session ID
     const userData = await User.findByPk(req.session.user_id, {
       attributes: { exclude: ["password"] },
-      include: [{ model: Dashboard }],
+      include: [{ model: Post }],
     });
 
     const user = userData.get({ plain: true });
